@@ -5,8 +5,7 @@
 # Don't load an init file: -q
 # Avoid processing X resources: -Q
 # Send messages to stderr: --batch
-# EMACS = emacs -Q -q --batch -L ./lisp -L ./site-lisp
-EMACS = emacs -Q -q --batch -L ~/core/devel/site-lisp/dists -L ~/core/devel/site-lisp/local
+EMACS = emacs -Q -q --batch -L ./lisp -L ./site-lisp
 
 # Remove command
 RM = rm -f
@@ -35,7 +34,6 @@ compile:
 
 autoloads:
 	 ${EMACS} -L ./site-lisp -L ./lisp -l ./lisp/lazy-load/lazy-load.el -f lazy-load-update-autoloads
-	 # ${EMACS} -L ~/core/devel/site-lisp/dists -L ~/core/devel/site-lisp/local -l ~/core/devel/site-lisp/local/lazy-load/lazy-load.el -f lazy-load-update-autoloads
 
 # Remove all byte compiled files
 clean:
