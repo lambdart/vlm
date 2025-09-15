@@ -64,7 +64,10 @@ package-lock.json
 /.emacs.desktop.lock
 *.elc
 auto-save-list
+srecode-map.el
+.emacs.desktop
 tramp
+themes
 .\#*
 
 # gtags
@@ -101,6 +104,7 @@ history
 .org
 
 # Emacs Packages directories
+semanticdb
 tutorial
 irony
 eshell
