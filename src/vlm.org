@@ -3,6 +3,7 @@
 #+EMAIL: lambdart@protonmail.com
 #+DESCRIPTION: an org-mode based Emacs configuration
 #+KEYWORDS: emacs, org, liretate programming, config, init.el
+
 #+LANGUAGE: en
 #+BABEL: :cache yes
 #+PROPERTY: header-args :tangle yes
@@ -417,6 +418,20 @@
 
       #+END_SRC
 
+*** Eval
+**** Customize
+
+     #+BEGIN_SRC emacs-lisp
+
+     ;; this limit serves to catch infinite recursions for you before they cause
+     ;; actual stack overflow in C, which would be fatal for Emacs.
+     ;; You can safely make it considerably larger than its default value,
+     ;; if that proves inconveniently small.  However, if you increase it too far,
+     ;; Emacs could overflow the real C stack, and crash.
+     (customize-set-variable 'max-lisp-eval-depth 6400)
+
+     #+END_SRC
+
 ** Basic
 *** Definitions
 **** Loaddefs
@@ -535,7 +550,7 @@
 
        #+END_SRC
 
-*** Fundamental
+*** Utils
 **** Macros
 
      #+BEGIN_SRC emacs-lisp
@@ -600,7 +615,6 @@
       (global-set-key (kbd "M-<f6>") 'async-shell-command)
 
       #+END_SRC
-
 
 ***** Enable
 
@@ -1360,7 +1374,6 @@
 
       ;; vlm-files-map
       (define-key vlm-files-map (kbd "r") 'recentf-open-files)
-      (define-key vlm-files-map (kbd "t") 'recentf-find-file)
 
       #+END_SRC
 
@@ -1568,16 +1581,61 @@
 
       ;; user-defined alist of rules for suggested commands
       (customize-set-variable 'dired-guess-shell-alist-user
-                              '(("\\.pdf\\'" "mupdf")
-                                ("\\.epub\\'" "mupdf")
+                              '(("\\.pdf\\'" "zathura")
+                                ("\\.epub\\'" "zathura")
                                 ("\\.mp4\\'" "mpv")
                                 ("\\.mkv\\'" "mpv")
                                 ("\\.avi\\'" "mpv")
+                                ("\\.webm\\'" "mpv")
                                 ("\\.p[bgpn]m\\'" "feh")
                                 ("\\.gif\\'" "feh")
                                 ("\\.tif\\'" "feh")
                                 ("\\.png\\'" "feh")
+                                ("\\.jpg\\'" "feh")
                                 ("\\.jpe?g\\'" "feh")))
+
+      #+END_SRC
+
+**** Tar
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'tar-mode nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; non-nil means that Tar mode preserves the timestamp when copying files
+      (customize-set-variable 'tar-copy-preserve-time t)
+
+      ;; non-nil means tar mode should show the date/time of each subfile
+      (customize-set-variable 'tar-mode-show-date t)
+
+      ;; if this is true, then editing and saving a tar file entry back into its
+      ;; tar file will update its datestamp
+      (customize-set-variable 'tar-update-datestamp nil)
+
+      #+END_SRC
+
+***** Binds
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; bind tar-mode-map
+      (eval-after-load 'tar-mode-map
+        (lambda ()
+          (when (boundp 'tar-mode-map)
+            (define-key tar-mode-map (kbd "C-RET") 'tar-untar-buffer))))
+
+      #+END_SRC
+
+***** Hooks
+
+      #+BEGIN_SRC emacs-lisp
 
       #+END_SRC
 
@@ -1650,7 +1708,7 @@
      ;; set transparency after a frame is created
      (add-hook 'after-make-frame-functions
                (lambda (_frame)
-                 (set-transparency .8)))
+                 (set-transparency .7)))
 
      #+END_SRC
 
@@ -1689,10 +1747,10 @@
                  (funcall 'blink-cursor-mode 1)))
 
      ;; set frame font
-     ;; (safe-set-frame-font "Hermit:pixelsize=20:slant=normal:width=normal:weight=light")))
+     ;; (safe-set-frame-font "Hermit:pixelsize=19:weight=regular:slant=normal:width=normal")))
      (add-hook 'after-make-frame-functions
                (lambda (_frame)
-                 (safe-set-frame-font "Iosevka:pixelsize=21:slant=normal:width=regular:weight=normal")))
+                 (safe-set-frame-font "Iosevka Term:pixelsize=22:weight=semibold:slant=normal:width=normal")))
 
      #+END_SRC
 
@@ -1740,13 +1798,24 @@
       (customize-set-variable 'window-combination-resize t)
 
       ;; if non-nil ‘display-buffer’ will try to even window sizes
-      (customize-set-variable 'even-window-sizes t)
+      (customize-set-variable 'even-window-sizes nil)
 
       ;; if non-nil, left and right side windows occupy full frame height
       (customize-set-variable 'window-sides-vertical nil)
 
       ;; non-nil value means always make a separate frame
       (customize-set-variable 'pop-up-frames nil)
+
+      ;; user-specified default action for display-buffer
+      (customize-set-variable 'display-buffer-base-action
+                              '((display-buffer-pop-up-window)))
+
+      ;; use this one for small displays
+      ;; (customize-set-variable 'display-buffer-base-action
+      ;;                         '((display-buffer-reuse-window
+      ;;                            display-buffer-same-window
+      ;;                            display-buffer-in-previous-window
+      ;;                            display-buffer-use-some-window)))
 
       #+END_SRC
 
@@ -1755,10 +1824,15 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; binds (global)
-      (global-set-key (kbd "s-l") 'shrink-window-horizontally)
-      (global-set-key (kbd "s-h") 'enlarge-window-horizontally)
-      (global-set-key (kbd "s-j") 'shrink-window)
-      (global-set-key (kbd "s-k") 'enlarge-window)
+      (global-set-key (kbd "s-<end>") 'shrink-window)
+      (global-set-key (kbd "s-<home>") 'enlarge-window)
+      (global-set-key (kbd "s-<next>") 'shrink-window-horizontally)
+      (global-set-key (kbd "s-<prior>") 'enlarge-window-horizontally)
+
+      (global-set-key (kbd "s-<up>") 'windmove-up)
+      (global-set-key (kbd "s-<down>") 'windmove-down)
+      (global-set-key (kbd "s-<left>") 'windmove-left)
+      (global-set-key (kbd "s-<right>") 'windmove-right)
 
       ;; next and previous buffer (on current window)
       (define-key ctl-x-map (kbd "C-,") 'previous-buffer)
@@ -1821,9 +1895,9 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; window move default keybinds (shift-up/down etc..)
-      (add-hook 'window-setup-hook
-                (lambda ()
-                  (funcall 'windmove-default-keybindings)))
+      ;; (add-hook 'window-setup-hook
+      ;;           (lambda ()
+      ;;             (funcall 'windmove-default-keybindings )))
 
       #+END_SRC
 
@@ -1964,6 +2038,13 @@
 ****** Customize
 
        #+BEGIN_SRC emacs-lisp
+
+       ;; if the value is 'relative, display for each line not containing the
+       ;; window’s point its relative number instead, i.e. the number of the line
+       ;; relative to the line showing the window’s point.
+       ;; the default type of line numbers to use in display-line-numbers-mode
+       (customize-set-variable 'display-line-numbers-type 'relative)
+       ;; (customize-set-variable 'display-line-numbers-type 't)
 
        ;; if non-nil, do not shrink line number width
        (customize-set-variable 'display-line-numbers-grow-only t)
@@ -2156,7 +2237,6 @@
 
       #+END_SRC
 
-
 **** Minibuffer
 
      The minibuffer is where Emacs commands read complicated arguments,
@@ -2238,7 +2318,7 @@
       (customize-set-variable 'resize-mini-windows nil)
 
       ;; maximum height for resizing mini-windows (the minibuffer and the echo area)
-      (customize-set-variable 'max-mini-window-height 1)
+      (customize-set-variable 'max-mini-window-height 0.3)
 
       ;; format string used to output "default" values
       (customize-set-variable 'minibuffer-default-prompt-format "[%s]")
@@ -2247,7 +2327,7 @@
       (customize-set-variable 'minibuffer-eldef-shorten-default t)
 
       ;; non-nil means entering the minibuffer raises the minibuffer's frame
-      (customize-set-variable 'minibuffer-auto-raise t)
+      (customize-set-variable 'minibuffer-auto-raise nil)
 
       ;; non-nil means to delete duplicates in history
       (customize-set-variable 'history-delete-duplicates t)
@@ -2861,10 +2941,12 @@
                                 "%n"
                                 ")"
                                 " "
+                                ;; "¦"
+                                "(%l'%C)"
+                                " "
                                 "(%p)"
                                 " "
-                                ;; "¦"
-                                "(%l'%c)"
+                                "(%I)"
                                 " "
                                 (:eval (propertized-buffer-identification "(%b)"))
                                 " "
@@ -2875,6 +2957,8 @@
                                 ")"
                                 ;; " "
                                 ;; mode-line-process
+                                " "
+                                "%-"
                                 ))
 
       #+END_SRC
@@ -2893,8 +2977,7 @@
 
        #+BEGIN_SRC emacs-lisp
 
-       (customize-set-variable 'wall-root-dir
-                               "/storage/media/images/wallpapers/")
+       (customize-set-variable 'wall-root-dir "/storage/media/images/wallpapers/")
 
        #+END_SRC
 
@@ -3387,13 +3470,13 @@
             (define-key help-mode-map (kbd "C-j") 'push-button))))
 
       ;; help prefix map (C-h) (redundancy)
-      (define-key help-map (kbd "C-d") 'describe-symbol)
+      (define-key help-map (kbd "C-s") 'describe-symbol)
       (define-key help-map (kbd "C-b") 'describe-bindings)
       (define-key help-map (kbd "C-f") 'describe-function)
       (define-key help-map (kbd "C-v") 'describe-variable)
+      (define-key help-map (kbd "C-c") 'describe-command)
       (define-key help-map (kbd "C-k") 'describe-key)
       (define-key help-map (kbd "C-r") 'info-display-manual)
-      (define-key help-map (kbd "C-m") 'describe-mode)
       (define-key help-map (kbd "C-m") 'describe-mode)
       (define-key help-map (kbd "C-w") 'where-is)
       (define-key help-map (kbd "C-l") 'view-lossage)
@@ -4619,7 +4702,7 @@
       (customize-set-variable 'ibuffer-view-ibuffer nil)
 
       ;; if non-nil, always display the previous buffer
-      (customize-set-variable 'ibuffer-always-show-last-buffer t)
+      (customize-set-variable 'ibuffer-always-show-last-buffer nil)
 
       ;; if non-nil, then show the names of filter groups which are empty
       (customize-set-variable 'ibuffer-show-empty-filter-groups nil)
@@ -4792,7 +4875,6 @@
 
       #+END_SRC
 
-
 ***** Binds
 
       #+BEGIN_SRC emacs-lisp
@@ -4801,7 +4883,7 @@
       (define-key vlm-completion-map (kbd "e") 'hippie-expand)
 
       ;; global
-      (global-set-key (kbd "M-[") 'hippie-expand)
+      (global-set-key (kbd "M-]") 'hippie-expand)
 
       #+END_SRC
 
@@ -4826,9 +4908,7 @@
 
       ;; binds vlm-completion-map
       ;; (define-key vlm-completion-map (kbd "e") 'yas-expand)
-      ;; (define-key vlm-completion-map (kbd "i") 'yas-insert-snippet)
-      ;; (define-key vlm-completion-map (kbd "v") 'yas-visit-snippet-file)
-      ;; (define-key global-map (kbd "C-M-I") 'yas-insert-snippet)
+      (define-key vlm-completion-map (kbd "i") 'yas-insert-snippet)
 
       ;; binds yas-keymap
       (eval-after-load 'yasnippet
@@ -4872,10 +4952,10 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; vlm-completion-map
-      ;; (define-key vlm-completion-map (kbd "`") 'ace-completion-word-at-point)
-      ;; (define-key vlm-completion-map (kbd "f") 'ace-completion-file-name-at-point)
-      (define-key vlm-completion-map (kbd "<tab>") 'ace-completion-at-point)
-      (define-key vlm-completion-map (kbd "a")     'completion-at-point)
+      (define-key vlm-completion-map (kbd "<tab>") 'ace-completion-at-point-or-indent)
+      (define-key vlm-completion-map (kbd "w") 'ace-completion-word-at-point)
+      (define-key vlm-completion-map (kbd "f") 'ace-completion-file-name-at-point)
+      (define-key vlm-completion-map (kbd "a") 'completion-at-point)
 
       ;; global map
       (global-set-key (kbd "TAB") 'ace-completion-at-point-or-indent)
@@ -5322,7 +5402,7 @@
 
       ;; the default directory to look for media files.
       (customize-set-variable 'emms-source-file-default-directory
-                              (expand-file-name "/storage/media/music"))
+                              (expand-file-name "/storage/media/music/playlist/"))
 
       #+END_SRC
 
@@ -5472,8 +5552,7 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; prefix uRL to search engine
-      (customize-set-variable 'eww-search-prefix "https://www.google.com/search?q=")
-      ;; (customize-set-variable eww-search-prefix "https://duckduckgo.com/html/?q=")
+      (customize-set-variable 'eww-search-prefix "https://duckduckgo.com/html/?q=")
 
       ;; directory where files will downloaded
       (customize-set-variable 'eww-download-directory "~/down")
@@ -5536,6 +5615,33 @@
 
       ;; function to display the current buffer in a WWW browser: eww
       (customize-set-variable 'browse-url-browser-function 'eww-browse-url)
+
+      #+END_SRC
+
+**** Elpher
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'elpher nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      #+END_SRC
+
+***** Binds
+
+      #+BEGIN_SRC emacs-lisp
+
+      (eval-after-load 'elpher
+        (lambda ()
+          (when (boundp 'elpher-mode-map)
+            (define-key elpher-mode-map (kbd "l") 'elpher-back)
+            (define-key elpher-mode-map (kbd "L") 'elpher-back-to-start))))
 
       #+END_SRC
 
@@ -5988,6 +6094,7 @@
 
       ;; global-map
       (global-set-key (kbd "<print>") 'capture-screen)
+      (global-set-key (kbd "s-<f11>") 'capture-screen)
 
       #+END_SRC
 
@@ -6126,8 +6233,11 @@
       (customize-set-variable 'org-special-ctrl-a/e t)
 
       ;; check if in invisible region before inserting or deleting a character
-      ;; Valid values are:
       (customize-set-variable 'org-fold-catch-invisible-edits 'show-and-error)
+
+      ;; list of export backends that should be always available
+      (customize-set-variable 'org-export-backends
+                              '(ascii html icalendar latex odt md man texinfo))
 
       #+END_SRC
 
@@ -6349,11 +6459,10 @@
         (interactive)
         (let ((word (or (thing-at-point 'word)
                         (read-string "Word: "))))
-          (cond
-           ((string-equal word "")
-            (message "Missing %s word" word))
-           (t (when (fboundp 'dictionary-search)
-                (dictionary-search word))))))
+          (cond ((string-equal word "")
+                 (message "Missing %s word" word))
+                (t (when (fboundp 'dictionary-search)
+                     (dictionary-search word))))))
 
       #+END_SRC
 
@@ -6845,9 +6954,6 @@
 
       #+BEGIN_SRC emacs-lisp
 
-
-
-
       #+END_SRC
 
 **** Gdb-mi
@@ -6874,7 +6980,16 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; non-nil if gdb-many-windows mode is enabled
-      (customize-set-variable 'gdb-many-windows t)
+      (customize-set-variable 'gdb-many-windows nil)
+
+      ;; non-nil means display source file containing the main routine at startup
+      (customize-set-variable 'gdb-show-main t)
+
+      ;; if non-nil change the face of out of scope variables and changed values
+      (customize-set-variable 'gdb-show-changed-values t)
+
+      ;; when non-nil, decode octal escapes in GDB output into non-ASCII text
+      (customize-set-variable 'gdb-mi-decode-strings 'coding-system)
 
       #+END_SRC
 
@@ -6896,7 +7011,7 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; which output assembly format to use.
-      (customize-set-variable 'rmsbolt-asm-format "att")
+      (customize-set-variable 'rmsbolt-asm-format "intel")
 
       ;; whether we should disassemble an output binary
       (customize-set-variable 'rmsbolt-disassemble t)
@@ -6940,14 +7055,18 @@
       (customize-set-variable 'compilation-scroll-output t)
 
       ;; if t, always kill a running compilation process before starting a new one
-      (customize-set-variable 'compilation-always-kill t)
+      ;; nil, ask for it
+      (customize-set-variable 'compilation-always-kill nil)
+
+      ;; if non-nil, send end-of-file as compilation process input
+      (customize-set-variable 'compilation-disable-input t)
 
       ;; non-nil means M-x compile asks which buffers to save before compiling
       ;; otherwise, it saves all modified buffers without asking
       (customize-set-variable 'compilation-ask-about-save nil)
 
       ;; if non-nil, automatically jump to the first error during compilation
-      ;; (customize-set-variable 'compilation-auto-jump-to-first-error nil)
+      (customize-set-variable 'compilation-auto-jump-to-first-error t)
 
       #+END_SRC
 
@@ -7143,6 +7262,51 @@
 
       #+END_SRC
 
+**** Semantic
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'semantic nil t)
+      ;; (require 'semantic/db nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; non-nil means to pre-parse headers as we go.
+      ;; hide for languages that use the semantic pre-processor,
+      ;; this can improve the accuracy of parsed files where include
+      ;; files can change the state of what’s parsed in the current file
+      (customize-set-variable 'semantic-lex-spp-use-headers-flag t)
+
+      ;; if you are having problems with smart completion and STL templates,
+      ;; it may be that this is set incorrectly, after changing the value
+      ;; of this flag, you will need to delete any semanticdb cache files
+      ;; that may have been incorrectly parsed.
+      (customize-set-variable 'semantic-lex-c-nested-namespace-ignore-second t)
+
+      ;; non-nil means to parse through header files in idle time
+      (customize-set-variable 'semantic-idle-work-update-headers-flag t)
+
+      ;; the default throttle for semanticdb-find routines
+      (customize-set-variable 'semanticdb-find-default-throttle
+                              '(file local project unloaded system recursive))
+
+      ;; list of auxiliary semantic minor modes enabled by semantic-mode
+      (customize-set-variable 'semantic-default-submodes
+                              '(global-semantic-idle-scheduler-mode
+                                global-semanticdb-minor-mode))
+                                ;; global-semantic-highlight-func-mode
+                                ;; global-semantic-mru-bookmark-mode))
+
+      #+END_SRC
+
+
+***** Hooks
+***** Binds
 **** Hideshow
 
      Minor mode to hide and show code and comment blocks.
@@ -7159,7 +7323,7 @@
 
       #+BEGIN_SRC emacs-lisp
 
-      (add-hook 'prog-mode-hook 'hs-minor-mode)
+      ;; (add-hook 'prog-mode-hook 'hs-minor-mode)
 
       #+END_SRC
 
@@ -7427,7 +7591,7 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; (require 'slime nil t)
-      (require 'slime-autoloads)
+      (require 'slime-autoloads nil t)
 
       #+END_SRC
 
@@ -7435,9 +7599,9 @@
 
       #+BEGIN_SRC emacs-lisp
 
-      ;; "/usr/local/bin/ccl"
       ;; program name for invoking an inferior Lisp in Inferior Lisp mode
       (customize-set-variable 'inferior-lisp-program "/usr/local/bin/sbcl")
+      ;; (customize-set-variable 'inferior-lisp-program "/usr/local/bin/ccl")
 
       ;; never doesn’t load the fasl
       (customize-set-variable 'slime-load-failed-fasl 'never)
@@ -7461,7 +7625,8 @@
                     (setq slime-contribs
                           '(slime-fancy slime-asdf slime-quicklisp)))
                   (setq-local ace-collection-functions
-                              '(slime-simple-completions))))
+                              '(slime-simple-completions
+                                ace-collection-dabbrev-code))))
 
       (add-hook 'slime-repl-mode-hook
                 (lambda ()
@@ -7518,16 +7683,15 @@
               (define-key slime-mode-map (kbd "C-c C-e") 'slime-interactive-eval)
               (define-key slime-mode-map (kbd "C-c C-k") 'slime-call-defun)
               (define-key slime-mode-map (kbd "C-c x")   'slime-compile-defun)
-              (define-key slime-mode-map (kbd "C-c C-e") 'slime-interactive-eval)
-              (define-key slime-mode-map (kbd "C-c C-m") 'slime-macroexpand-1)
-              (define-key slime-mode-map (kbd "C-c M-m") 'slime-macroexpand-all)
               (define-key slime-mode-map (kbd "C-c C-x") 'slime-compile-defun)
-              (define-key slime-mode-map (kbd "C-c C-/") 'slime-disassemble-symbol)
-              (define-key slime-mode-map (kbd "C-c C-.") 'slime-export-symbol-at-point)
               (define-key slime-mode-map (kbd "C-c C-c") 'slime-compile-and-load-file)
               (define-key slime-mode-map (kbd "C-c C-f") 'slime-load-file)
-              (define-key slime-mode-map (kbd "C-c C-q") 'slime-unintern-symbol)
               (define-key slime-mode-map (kbd "C-c C-l") 'slime-quicklisp-load-system)
+              (define-key slime-mode-map (kbd "C-c C-m") 'slime-macroexpand-1)
+              (define-key slime-mode-map (kbd "C-c M-m") 'slime-macroexpand-all)
+              (define-key slime-mode-map (kbd "C-c C-/") 'slime-disassemble-symbol)
+              (define-key slime-mode-map (kbd "C-c C-.") 'slime-export-symbol-at-point)
+              (define-key slime-mode-map (kbd "C-c C-q") 'slime-unintern-symbol)
               (define-key slime-mode-map (kbd "C-c C-p") 'slime-repl-set-package)
               (define-key slime-mode-map (kbd "C-c C-o") 'slime-switch-to-output-buffer)))))
 
@@ -7792,6 +7956,24 @@
 
       #+END_SRC
 
+*** Asm
+**** Asm-mode
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+      ;; (require 'asm-mode nil t)
+      #+END_SRC
+
+***** Customize
+***** Hooks
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (add-hook 'asm-mode-hook 'turn-off-hideshow)
+
+      #+END_SRC
+
+***** Binds
 *** C/C++
 **** Cmacexp
 
@@ -7836,10 +8018,10 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; style which gets installed by default when a file is visited
-      (customize-set-variable 'c-default-style "bsd")
-
-      ;; whether to fontify certain ambiguous constructs by white space asymmetry
-      (customize-set-variable 'c-asymmetry-fontification-flag nil)
+      (customize-set-variable 'c-default-style
+                              '((java-mode . "java")
+                                (awk-mode . "awk")
+                                (other . "custom")))
 
       ;; align automatically inserted line continuation backslashes
       (customize-set-variable 'c-auto-align-backslashes t)
@@ -7853,13 +8035,13 @@
       (customize-set-variable 'c-basic-offset 4) ; 'set-from-style
 
       ;; if non-nil, syntactic info is echoed when the line is indented
-      (customize-set-variable 'c-echo-syntactic-information-p t)
+      (customize-set-variable 'c-echo-syntactic-information-p nil)
 
       ;; specifies documentation comment style(s) to recognize
       (customize-set-variable 'c-doc-comment-style 'doxygen) ; 'set-from-style
 
       ;; whether to fontify certain ambiguous constructs by white space asymmetry
-      (customize-set-variable 'c-asymmetry-fontification-flag t)
+      (customize-set-variable 'c-asymmetry-fontification-flag nil)
 
       ;; maximum alignment column for line continuation backslashes
       (customize-set-variable 'c-backslash-max-column 120)
@@ -7870,15 +8052,49 @@
 
       #+BEGIN_SRC emacs-lisp
 
+      ;; set dash docset
       (add-hook 'c-mode-hook
                 (lambda ()
-                  ;; set dash docset
-                  (vlm-activate-docset '"C")))
+                  (when (fboundp #'vlm-activate-docset)
+                    (vlm-activate-docset '"C"))))
+
+      ;; configure ace completions
+      (add-hook 'c-mode-hook
+                (lambda ()
+                  (when (fboundp 'ace-config-c-mode)
+                    (ace-config-c-mode))))
+
+      ;; set semantic path
+      (add-hook 'c-mode-hook
+                (lambda ()
+                  (seq-do #'funcall
+                          `((lambda () (semantic-mode 1))
+                            (lambda ()
+                              (defvar-mode-local c-mode
+                                semantic-dependency-system-include-path
+                                '("/usr/include")))))))
+
+      ;; set dash docset
+      (add-hook 'c++-mode-hook
+                (lambda ()
+                  (vlm-activate-docset '"C++")))
+
+      ;; configure ace completions
+      (add-hook 'c++-mode-hook
+                (lambda ()
+                  (when (fboundp 'ace-config-c++-mode)
+                    (ace-config-c++-mode))))
 
       (add-hook 'c++-mode-hook
                 (lambda ()
-                  ;; set dash docset
-                  (vlm-activate-docset '"C++")))
+                  (mapc #'funcall
+                        `((lambda () (semantic-mode 1))
+                          (lambda ()
+                            (defvar-mode-local c++-mode
+                              semantic-dependency-system-include-path
+                              '("/usr/include"
+                                "/usr/include/c++/v1"
+                                "/usr/local/include/boost")))))))
 
       #+END_SRC
 
@@ -8324,7 +8540,6 @@
      (customize-set-variable 'reb-auto-match-limit 1024)
 
      #+END_SRC
-
 ** Unload
 
    #+BEGIN_SRC emacs-lisp
