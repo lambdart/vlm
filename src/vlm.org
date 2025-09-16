@@ -8337,7 +8337,7 @@
       ;; non-nil means template skeletons will be automagically inserted
       (customize-set-variable 'python-skeleton-autoinsert t)
       ;; path to virtualenv root
-      ;; (customize-set-variable 'python-shell-virtualenv-root "~/.local/python/project/venv")
+      (customize-set-variable 'python-shell-virtualenv-root nil) "~/.local/python/project/venv")
 
       #+END_SRC
 
