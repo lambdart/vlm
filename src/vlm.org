@@ -6553,27 +6553,27 @@
 
       ;; title of the blog
       (customize-set-variable
-       'org-weblog-publish-title "Hidden Ones")
+       'org-weblog-publish-title "lambdart's blog")
 
       ;; url of the blog.
       (customize-set-variable
-       'org-weblog-url "https://lambdart.github.io/")
+       'org-weblog-url "https://lambdart.github.io")
 
       ;; directory where published HTML files are stored
       (customize-set-variable
-       'org-weblog-publish-directory "~/core/dev/hidden-ones/site/preview/")
+       'org-weblog-publish-directory "~/core/blog/src/build/preview/")
 
       ;; directory where published ORG files are stored
       (customize-set-variable
-       'org-weblog-posts-directory "~/core/dev/hidden-ones/posts/")
+       'org-weblog-posts-directory "~/core/blog/src/posts")
 
       ;; directory where published ORG files are stored
       (customize-set-variable
-       'org-weblog-pages-directory "~/core/dev/hidden-ones/pages/")
+       'org-weblog-pages-directory "~/core/blog/src/pages")
 
       ;; directory where unpublished ORG files are stored.
       (customize-set-variable
-       'org-weblog-drafts-directory "~/core/dev/hidden-ones/drafts/")
+       'org-weblog-drafts-directory "~/core/blog/src/drafts/")
 
       ;; ;; use preview versions of posts on multipost pages
       ;; (customize-set-variable 'org-weblog-use-preview-flag t)
@@ -8337,7 +8337,7 @@
       ;; non-nil means template skeletons will be automagically inserted
       (customize-set-variable 'python-skeleton-autoinsert t)
       ;; path to virtualenv root
-      (customize-set-variable 'python-shell-virtualenv-root "/home/lambdart/core/work/funape/spectroman/venv")
+      ;; (customize-set-variable 'python-shell-virtualenv-root "~/.local/python/project/venv")
 
       #+END_SRC
 
