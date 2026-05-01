@@ -2,16 +2,16 @@
 .PHONY = all compile clean autoloads tangle
 
 # Emacs invocation
-# Don't load an init file: -q
-# Avoid processing X resources: -Q
-# Send messages to stderr: --batch
+# don't load an init file: -q
+# avoid processing X resources: -Q
+# send messages to stderr: --batch
 EMACS = emacs -Q -q --batch -L ./lisp -L ./site-lisp
 
-# Remove command
+# remove command
 RM = rm -f
 
-# Define Compile Command (CC)
-# Call batch-byte-compile function: -f
+# define compile command (CC)
+# call batch-byte-compile function: -f
 # CC := -f batch-native-compile
 CC := -f batch-byte-compile
 
@@ -28,13 +28,13 @@ tangle:
 	${EMACS} ${CC} ${TANGLE_SCRIPT}
 	${EMACS} -l ${TANGLE_SCRIPT} -f tangle-and-rename
 
-# Compile init.el and early-init.el
+# compile init.el and early-init.el
 compile:
 	 ${EMACS} ${CC} init.el early-init.el
 
 autoloads:
 	 ${EMACS} -L ./site-lisp -L ./lisp -l ./lisp/lazy-load/lazy-load.el -f lazy-load-update-autoloads
 
-# Remove all byte compiled files
+# remove all byte compiled files
 clean:
 	${RM} *.elc

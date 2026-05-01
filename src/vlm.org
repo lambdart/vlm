@@ -70,8 +70,6 @@
 
     #+BEGIN_SRC emacs-lisp
 
-    ;;; -*- lexical-binding: t -*-
-
     #+END_SRC
 
 *** Verify
@@ -632,12 +630,12 @@
 
       #+END_SRC
 
-**** Lex
+**** Lh
 ***** Require
 
       #+BEGIN_SRC emacs-lisp
 
-      ;; (require 'lex nil t)
+      ;; (require 'lh nil t)
 
       #+END_SRC
 
@@ -1583,6 +1581,7 @@
       (customize-set-variable 'dired-guess-shell-alist-user
                               '(("\\.pdf\\'" "zathura")
                                 ("\\.epub\\'" "zathura")
+                                ("\\.djvu\\'" "zathura")
                                 ("\\.mp4\\'" "mpv")
                                 ("\\.mkv\\'" "mpv")
                                 ("\\.avi\\'" "mpv")
@@ -1727,8 +1726,8 @@
 
      (defmacro safe-set-frame-font (font)
        "Set the default font to FONT."
-       `(cond ((find-font (font-spec :name ,font))
-               (set-frame-font ,font nil t))))
+       `(when (find-font (font-spec :name ,font))
+          (set-frame-font ,font nil t)))
 
      #+END_SRC
 
@@ -1747,10 +1746,16 @@
                  (funcall 'blink-cursor-mode 1)))
 
      ;; set frame font
-     ;; (safe-set-frame-font "Hermit:pixelsize=19:weight=regular:slant=normal:width=normal")))
      (add-hook 'after-make-frame-functions
                (lambda (_frame)
-                 (safe-set-frame-font "Iosevka Term:pixelsize=22:weight=semibold:slant=normal:width=normal")))
+                 (safe-set-frame-font "Noto Sans Mono:pixelsize=17:weight=medium:slant=normal:width=normal")))
+
+     ;; (safe-set-frame-font "Anonymous Pro:pixelsize=22:weight=bold:slant=normal:width=normal")))
+     ;; (safe-set-frame-font "APL385 Unicode:pixelsize=23:weight=regular:normal=normal:width=normal")))
+     ;; (safe-set-frame-font "Spleen 32x64:pixelsize=23:weight=medium:slant=normal:width=normal")))
+     ;; (safe-set-frame-font "Courier:pixelsize=20:weight=bold:slant=normal:width=normal")))
+     ;; (safe-set-frame-font "unscii:pixelsize=22:weight=thin:slant=normal:width=normal")))
+     ;; (safe-set-frame-font "Noto Sans Mono:pixelsize=19:weight=bold:slant=normal:width=normal")))
 
      #+END_SRC
 
@@ -1807,15 +1812,15 @@
       (customize-set-variable 'pop-up-frames nil)
 
       ;; user-specified default action for display-buffer
-      (customize-set-variable 'display-buffer-base-action
-                              '((display-buffer-pop-up-window)))
-
-      ;; use this one for small displays
       ;; (customize-set-variable 'display-buffer-base-action
-      ;;                         '((display-buffer-reuse-window
-      ;;                            display-buffer-same-window
-      ;;                            display-buffer-in-previous-window
-      ;;                            display-buffer-use-some-window)))
+      ;;                         '((display-buffer-pop-up-window)))
+
+      ;; ;; use this one for small displays
+      (customize-set-variable 'display-buffer-base-action
+                              '((display-buffer-reuse-window
+                                 display-buffer-same-window)))
+                                 ;; display-buffer-in-previous-window
+                                 ;; display-buffer-use-some-window)))
 
       #+END_SRC
 
@@ -1835,8 +1840,8 @@
       (global-set-key (kbd "s-<right>") 'windmove-right)
 
       ;; next and previous buffer (on current window)
-      (define-key ctl-x-map (kbd "C-,") 'previous-buffer)
       (define-key ctl-x-map (kbd "C-.") 'next-buffer)
+      (define-key ctl-x-map (kbd "C-,") 'previous-buffer)
 
       ;; binds (vlm-window prefix map)
       (define-key vlm-window-map (kbd "+") 'maximize-window)
@@ -2022,7 +2027,7 @@
 
        #+END_SRC
 
-***** Display-linum
+***** Display-line-numbers
 
       Display line numbers in the buffer.
       Provides a minor mode interface for `display-line-numbers'.
@@ -2043,8 +2048,8 @@
        ;; window’s point its relative number instead, i.e. the number of the line
        ;; relative to the line showing the window’s point.
        ;; the default type of line numbers to use in display-line-numbers-mode
-       (customize-set-variable 'display-line-numbers-type 'relative)
-       ;; (customize-set-variable 'display-line-numbers-type 't)
+       ;; (customize-set-variable 'display-line-numbers-type 'relative)
+       (customize-set-variable 'display-line-numbers-type 't)
 
        ;; if non-nil, do not shrink line number width
        (customize-set-variable 'display-line-numbers-grow-only t)
@@ -2273,8 +2278,17 @@
       ;; non-nil means when reading a file name completion ignores case
       (customize-set-variable 'read-file-name-completion-ignore-case nil)
 
+      ;; hide commands in M-x which do not apply to the current mode
+      ;; commands are hidden, since they are not used via M-x
+      (customize-set-variable 'read-extended-command-predicate
+                              #'command-completion-default-include-p)
+
       ;; number of completion candidates below which cycling is used
       (customize-set-variable 'completion-cycle-threshold nil)
+
+      ;; if non-nil, partial-completion behaves as
+      ;; if each word is preceded by wildcard.
+      (customize-set-variable 'completion-pcm-leading-wildcard t)
 
       ;; treat the SPC or - inserted by minibuffer-complete-word as delimiters
       (customize-set-variable 'completion-pcm-complete-word-inserts-delimiters t)
@@ -2298,14 +2312,14 @@
       (customize-set-variable 'completion-flex-nospace nil)
 
       ;; list of completion styles to use: see `completion-styles-alist variable
-      ;; (customize-set-variable 'completion-styles
-      ;;                         '(basic emacs22 partial-completion initials flex))
-      (customize-set-variable 'completion-styles
-                              '(basic emacs22 partial-completion initials orderless))
+      ;; (customize-set-variable 'completion-styles '(basic emacs22 orderless))
+      ;; (customize-set-variable 'completion-styles '(basic emacs22 partial-completion initials orderless))
+      (customize-set-variable 'completion-styles '(emacs22 orderless))
 
       ;; list of category-specific user overrides for completion styles
       (customize-set-variable 'completion-category-overrides
                               '((buffer (styles substring basic emacs22))
+                                (file (styles partial-completion))
                                 (info-menu (styles basic))))
 
       ;; define the appearance and sorting of completions
@@ -2315,10 +2329,18 @@
       (customize-set-variable 'completions-detailed nil)
 
       ;; how to resize mini-windows (the minibuffer and the echo area)
-      (customize-set-variable 'resize-mini-windows nil)
+      (customize-set-variable 'resize-mini-windows 'grow-only)
 
-      ;; maximum height for resizing mini-windows (the minibuffer and the echo area)
+      ;; nonzero means echo unfinished commands after this many seconds of pause
+      ;; if the value is zero, don’t echo at all
+      (customize-set-variable 'echo-keystrokes 1)
+
+      ;; maximum height for resizing mini-windows
       (customize-set-variable 'max-mini-window-height 0.3)
+
+      ;; this flag controls how an input method shows an intermediate
+      ;; key sequence
+      (customize-set-variable 'input-method-use-echo-area t)
 
       ;; format string used to output "default" values
       (customize-set-variable 'minibuffer-default-prompt-format "[%s]")
@@ -2336,10 +2358,10 @@
       ;; only when the user starts using a minibuffer there
       (customize-set-variable 'minibuffer-follows-selected-frame t)
 
-      ;; special hook to find the completion table for the entity at point (default)
-      (customize-set-variable 'completion-at-point-functions
-                              `(elisp-completion-at-point
-                                tags-completion-at-point-function t))
+      ;; special hook to find the completion table
+      ;; for the entity at point (default)
+      ;; `(elisp-completion-at-point tags-completion-at-point-function t))
+      (customize-set-variable 'completion-at-point-functions '(t))
 
       #+END_SRC
 
@@ -2367,9 +2389,9 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; minibuffer-local-map
-      (define-key minibuffer-local-map (kbd "M-`") 'minibuffer-completion-help)
-      (define-key minibuffer-local-map (kbd "M-w") 'minibuffer-complete-word)
-      (define-key minibuffer-local-map (kbd "<tab>") 'minibuffer-complete)
+      ;; (define-key minibuffer-local-map (kbd "M-`") 'minibuffer-completion-help)
+      ;; (define-key minibuffer-local-map (kbd "M-w") 'minibuffer-complete-word)
+      ;; (define-key minibuffer-local-map (kbd "<tab>") 'minibuffer-complete)
 
       ;; global
       ;; (global-set-key (kbd "<C-delete>") 'quit-minibuffer)
@@ -2500,7 +2522,7 @@
       (customize-set-variable 'completion-prompt-speed-threshold 2400)
 
       ;; non-nil means separator characters mark previous word as used
-      (customize-set-variable 'completion-on-separator-character t)
+      (customize-set-variable 'completion-on-separator-character nil)
 
       ;; the filename to save completions to.
       (customize-set-variable
@@ -2548,6 +2570,10 @@
       (define-key completion-list-mode-map (kbd "C-j") 'choose-completion)
       (define-key completion-list-mode-map (kbd "C-g") 'quit-minibuffer)
 
+      ;; bind completion at point again
+      ;; (global-set-key (kbd "<tab>") #'indent-for-tab-command)
+      ;; (global-set-key (kbd "M-<tab>") #'nil)
+
       #+END_SRC
 
 ***** Enable
@@ -2580,8 +2606,7 @@
           (global-set-key (kbd "M-x") 'edm-execute-extended-command)
           (global-set-key (kbd "C-M-x") 'edm-execute-extended-command)
           ;; minibuffer
-          (define-key minibuffer-local-map
-                      (kbd "M-`") 'edm-display-menu-buffer)
+          (define-key minibuffer-local-map (kbd "M-`") 'edm-display-menu-buffer)
           ;; ctl-x-map
           (define-key ctl-x-map (kbd "x") 'edm-execute-keymap-command)
           (define-key ctl-x-map (kbd "C-x") 'edm-execute-local-keymap-command)))
@@ -2629,7 +2654,7 @@
       (customize-set-variable 'icomplete-max-delay-chars 2)
 
       ;; completions-computation stall, used only with large-number completions
-      (customize-set-variable 'icomplete-compute-delay 0)
+      (customize-set-variable 'icomplete-compute-delay 0.2)
 
       ;; when non-nil, show completions when first prompting for input
       (customize-set-variable 'icomplete-show-matches-on-no-input t)
@@ -2641,7 +2666,7 @@
       (customize-set-variable 'icomplete-hide-common-prefix nil)
 
       ;; maximum number of lines to use in the minibuffer
-      (customize-set-variable 'icomplete-prospects-height 1)
+      (customize-set-variable 'icomplete-prospects-height 4)
 
       ;; string used by Icomplete to separate alternatives in the minibuffer
       ;; (customize-set-variable 'icomplete-separator (propertize " • " 'face 'shadow))
@@ -2653,7 +2678,13 @@
       (customize-set-variable 'icomplete-with-completion-tables t)
 
       ;; if non-nil, also use icomplete when completing in non-mini buffers
-      (customize-set-variable 'icomplete-in-buffer nil)
+      (customize-set-variable 'icomplete-in-buffer t)
+
+      ;; By default, when you press ‘C-M-i’, both Icomplete mode's in-buffer
+      ;; display of possible completions and the ‘*Completions*’ buffer appear.
+      ;; If you are using ‘icomplete-in-buffer’, then you may wish to suppress
+      ;; this appearance of the ‘*Completions*’ buffer.
+      (advice-add 'completion-at-point :after #'minibuffer-hide-completions)
 
       #+END_SRC
 
@@ -2977,7 +3008,8 @@
 
        #+BEGIN_SRC emacs-lisp
 
-       (customize-set-variable 'wall-root-dir "/storage/media/images/wallpapers/")
+       (customize-set-variable 'wall-root-dir
+                               (expand-file-name "~/media/images/wallpapers/"))
 
        #+END_SRC
 
@@ -3036,15 +3068,9 @@
 
       #+END_SRC
 
-****** Binds
-
-       #+BEGIN_SRC emacs-lisp
-
-       (global-set-key (kbd "M-<tab>") 'indent-for-tab-command)
-
-       #+END_SRC
-
 **** Kmacro
+
+
 
      The kmacro package provides the user interface to emacs' basic
      keyboard macro functionality.  With kmacro, two function keys are
@@ -3888,6 +3914,7 @@
       #+BEGIN_SRC emacs-lisp
 
       (define-key ctl-x-map (kbd "u") 'undo-tree-visualize)
+      (define-key ctl-x-map (kbd "C-u") 'undo-tree-visualize)
 
       #+END_SRC
 
@@ -4250,8 +4277,8 @@
 
        #+BEGIN_SRC emacs-lisp
 
-       ;; (exwm-randr-enable)
-       (exwm-enable)
+       ;; (exwm-randr-mode)
+       (exwm-wm-mode)
 
        #+END_SRC
 
@@ -4377,36 +4404,6 @@
 
        #+END_SRC
 
-***** Vterm
-****** Require
-****** Customize
-****** Binds
-
-       #+BEGIN_SRC emacs-lisp
-
-       (eval-after-load 'vterm
-         (lambda ()
-           (when (and (boundp 'vterm-mode-map)
-                      (boundp 'vterm-copy-mode-map))
-             (define-key vterm-mode-map (kbd "s-q") 'vterm-copy-mode)
-             (define-key vterm-copy-mode-map (kbd "s-q") 'vterm-copy-mode-done))))
-
-       ;; clt-x-map (C-x) prefix
-       ;; (define-key ctl-x-map (kbd "<C-return>") 'vterm)
-
-       #+END_SRC
-
-****** Hooks
-
-       #+BEGIN_SRC emacs-lisp
-
-       (add-hook 'vterm-mode-hook
-                 (lambda ()
-                   (setq-local global-hl-line-mode nil)))
-
-       #+END_SRC
-
-****** Enable
 ***** Multi-Term
 ****** Require
 ****** Customize
@@ -4421,7 +4418,8 @@
 
        #+BEGIN_SRC emacs-lisp
 
-       (define-key ctl-x-map (kbd "x") 'multi-term-dedicated-toggle)
+       (define-key ctl-x-map (kbd "]") 'multi-term-dedicated-toggle)
+       (define-key ctl-x-map (kbd "C-]") 'multi-term-dedicated-toggle)
 
        #+END_SRC
 
@@ -4585,37 +4583,6 @@
       #+END_SRC
 
 *** Apparence
-**** Icons
-***** All-the-icons
-
-      This package is a utility for using and formatting various Icon
-      fonts within Emacs.  Icon Fonts allow you to propertize and format
-      icons the same way you would normal text. This enables things such
-      as better scaling of and anti aliasing of the icons.
-
-****** Require
-
-       #+BEGIN_SRC emacs-lisp
-
-       ;; (require 'all-the-icons nil t)
-
-       #+END_SRC
-
-****** Customize
-
-       #+BEGIN_SRC emacs-lisp
-
-       ;; whether or not to include a foreground colour when formatting the icon
-       (customize-set-variable 'all-the-icons-color-icons nil)
-
-       ;; the default adjustment to be made to the `raise' display property of an icon
-       (customize-set-variable 'all-the-icons-default-adjust -0.3)
-
-       ;; the base Scale Factor for the `height' face property of an icon
-       (customize-set-variable 'all-the-icons-scale-factor 1.1)
-
-       #+END_SRC
-
 **** Themes
 ***** Moebius
 
@@ -4797,7 +4764,6 @@
       ;; hook run upon entry into `ibuffer-mode'
       (add-hook 'ibuffer-mode-hook
                 (lambda ()
-                  (safe-funcall 'ibuffer-auto-mode 1)
                   (safe-funcall 'ibuffer-switch-to-saved-filter-groups "default")
                   (safe-funcall 'ibuffer-jump-to-filter-group "Default")))
 
@@ -4820,6 +4786,137 @@
       #+END_SRC
 
 *** Completions
+**** Corfu
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'corfu nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; enable cycling for `corfu-next' and `corfu-previous'
+      (customize-set-variable 'corfu-cycle t)
+
+      ;; automatically quit if no matching candidate is found
+      (customize-set-variable 'corfu-quit-no-match nil)
+
+      ;; automatically quit at completion boundary
+      (customize-set-variable 'corfu-quit-at-boundary t)
+
+      ;; preview currently selected candidate, if the variable
+      ;; has the value 'insert the candidate is automatically
+      ;; inserted on further input.
+      (customize-set-variable 'corfu-preview-current nil)
+
+      ;; configure if the prompt or first candidate is preselected
+      (customize-set-variable 'corfu-preselect 'prompt)
+
+      ;; configure how a single exact match should be handled
+      (customize-set-variable 'corfu-on-exact-match 'show)
+
+      ;; delay for auto completion.Delay for auto completion
+      (customize-set-variable 'corfu-auto-delay 0.2)
+
+      ;; minimum length of prefix for auto completion
+      (customize-set-variable 'corfu-auto-prefix 2)
+
+      ;; maximal number of candidates to show
+      (customize-set-variable 'corfu-count 8)
+
+      #+END_SRC
+
+***** Binds
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; corfu-mode-map
+      (eval-after-load 'corfu-mode
+        (lambda ()
+          (when (boundp 'corfu-map)
+            ;; bind
+            (define-key corfu-map (kbd "RET") 'corfu-insert)
+            (define-key corfu-map (kbd "C-j") 'corfu-insert)
+            (define-key corfu-map (kbd "M-TAB") 'corfu-next)
+            (define-key corfu-map (kbd "M-DEL") 'corfu-previous))))
+
+      #+END_SRC
+
+***** Hooks
+
+      #+BEGIN_SRC emacs-lisp
+
+      (add-hook 'corfu-mode-hook
+                (lambda ()
+                  (when (fboundp 'corfu-terminal-mode)
+                    (funcall #'(lambda () (corfu-terminal-mode +1))))))
+
+      #+END_SRC
+
+***** Enable
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; enable corfu-mode
+      (add-hook 'window-setup-hook
+                (lambda ()
+                  (funcall #'global-corfu-mode)))
+
+      #+END_SRC
+
+**** Corfu-Terminal
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'corfu-terminal nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; use popon ui on gui
+      (customize-set-variable 'corfu-terminal-disable-on-gui nil)
+
+      ;; non-nil means enable corfu-terminal on minibuffer
+      (customize-set-variable 'corfu-terminal-enable-on-minibuffer nil)
+
+      #+END_SRC
+
+***** Binds
+***** Hooks
+
+      #+BEGIN_SRC emacs-lisp
+
+      #+END_SRC
+
+**** Capes
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'cape nil t)
+
+      #+END_SRC
+
+***** Binds
+
+      #+BEGIN_SRC emacs-lisp
+
+      #+END_SRC
+
+***** Enable
+
+      #+BEGIN_SRC emacs-lisp
+
+      #+END_SRC
+
 **** Dabbrev
 
      The purpose with this package is to let you write just a few
@@ -4956,9 +5053,6 @@
       (define-key vlm-completion-map (kbd "w") 'ace-completion-word-at-point)
       (define-key vlm-completion-map (kbd "f") 'ace-completion-file-name-at-point)
       (define-key vlm-completion-map (kbd "a") 'completion-at-point)
-
-      ;; global map
-      (global-set-key (kbd "TAB") 'ace-completion-at-point-or-indent)
 
       #+END_SRC
 
@@ -5402,7 +5496,7 @@
 
       ;; the default directory to look for media files.
       (customize-set-variable 'emms-source-file-default-directory
-                              (expand-file-name "/storage/media/music/playlist/"))
+                              (expand-file-name "~/media/music/Playlist/"))
 
       #+END_SRC
 
@@ -6269,6 +6363,7 @@
       (eval-after-load 'org-mode
         (progn
           (when (boundp 'org-mode-map)
+            (define-key org-mode-map (kbd "<tab>") 'org-cycle)
             (define-key org-mode-map (kbd "C-c C-<up>") 'org-timestamp-up)
             (define-key org-mode-map (kbd "C-c C-<down>") 'org-timestamp-down))))
 
@@ -6603,6 +6698,18 @@
       ;; (require 'man nil t)
 
       #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; pushy      -- make the manpage the current buffer in the current window
+      ;; bully      -- make the manpage the current buffer and only window (sf)
+      ;; aggressive -- make the manpage the current buffer in the other window (sf)
+      (customize-set-variable 'Man-notify-method 'aggressive)
+
+      #+END_SRC
+
 
 ***** Hooks
 
@@ -6954,6 +7061,15 @@
 
       #+BEGIN_SRC emacs-lisp
 
+      ;; whether gud should highlight the source line being debugged. hide
+      ;; if non-nil, Gud will accentuate the source code line previously
+      ;; executed upon each pause in the debugee’s execution with an
+      ;; overlay in the face `'gud-highlight-current-line-face.
+      (customize-set-variable 'gud-highlight-current-line t)
+
+      ;; default command to run an executable under GDB in text command mode
+      (customize-set-variable 'gud-gud-gdb-command-name "gdb -f")
+
       #+END_SRC
 
 **** Gdb-mi
@@ -6983,7 +7099,7 @@
       (customize-set-variable 'gdb-many-windows nil)
 
       ;; non-nil means display source file containing the main routine at startup
-      (customize-set-variable 'gdb-show-main t)
+      (customize-set-variable 'gdb-show-main nil)
 
       ;; if non-nil change the face of out of scope variables and changed values
       (customize-set-variable 'gdb-show-changed-values t)
@@ -6993,7 +7109,6 @@
 
       #+END_SRC
 
-**** Realgud
 **** Rmsbolt
 
      A compiler output viewer.
@@ -7011,13 +7126,10 @@
       #+BEGIN_SRC emacs-lisp
 
       ;; which output assembly format to use.
-      (customize-set-variable 'rmsbolt-asm-format "intel")
+      (customize-set-variable 'rmsbolt-asm-format t)
 
       ;; whether we should disassemble an output binary
       (customize-set-variable 'rmsbolt-disassemble t)
-
-      ;; rmsbolt mode lighter
-      (customize-set-variable 'rmsbolt-mode-lighter "RMS")
 
       ;; don't recompile the source buffer automatically
       (customize-set-variable 'rmsbolt-automatic-recompile nil)
@@ -7257,8 +7369,7 @@
 
       #+BEGIN_SRC emacs-lisp
 
-      (define-key prog-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
-      (define-key prog-mode-map (kbd "M-<tab>") 'indent-for-tab-command)
+      ;; (define-key prog-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
 
       #+END_SRC
 
@@ -7299,14 +7410,94 @@
       (customize-set-variable 'semantic-default-submodes
                               '(global-semantic-idle-scheduler-mode
                                 global-semanticdb-minor-mode))
-                                ;; global-semantic-highlight-func-mode
-                                ;; global-semantic-mru-bookmark-mode))
+      ;; global-semantic-highlight-func-mode
+      ;; global-semantic-mru-bookmark-mode))
 
       #+END_SRC
 
-
 ***** Hooks
 ***** Binds
+**** Eglot
+***** Require
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; (require 'eglot nil t)
+
+      #+END_SRC
+
+***** Customize
+
+      #+BEGIN_SRC emacs-lisp
+
+      ;; how eglot indicates there’s are code actions available at point
+      (customize-set-variable 'eglot-code-action-indications
+                              '(eldoc-hint))
+
+      ;; indicator string for code action suggestions
+      (customize-set-variable 'eglot-code-action-indicator "→")
+
+      ;; if non-nil, Eglot attempts to inform server of canceled requests
+      ;; the effect of this notification is implementation defined,
+      ;; and is only useful for some servers.
+      (customize-set-variable 'eglot-advertise-cancellation t)
+
+      ;; value is a plist accepting the keys ‘:size’, which controls the
+      ;; size in characters of the buffer (0 disables, nil means
+      ;; infinite), and ‘:format’, which controls the shape of each log
+      ;; entry (‘full’ includes the original JSON, ‘lisp’ uses
+      ;; pretty-printed Lisp).
+      (customize-set-variable 'eglot-events-buffer-config
+                              '(:size 0 :format lisp))
+
+      ;; list of Emacs things that Eglot should try to stay of
+      (customize-set-variable 'eglot-stay-out-of '(xref eldoc flymake))
+
+      ;; if non-nil, always request plaintext responses to hover requests
+      (customize-set-variable 'eglot-prefer-plaintext t)
+
+      ;; control blocking of lsp connection attempts
+      ;; nil has the same meaning as 0, i.e. don’t block at all
+      (customize-set-variable 'eglot-sync-connect nil)
+
+      ;; if non-nil, show progress of long running LSP server work
+      ;; if set to 'messages, use *Messages* buffer, else use Eglot’s
+      ;;    mode line indicator.
+      (customize-set-variable 'eglot-report-progress 'messages)
+
+      ;; lsp server capabilities that eglot could use, but won’t.
+      (customize-set-variable 'eglot-ignored-server-capabilities
+                              '(
+                                ;; :completionProvider
+                                ;; :typeHierarchyProvider
+                                ;; :callHierarchyProvider
+                                ;; :signatureHelpProvider
+                                ;; :codeActionProvider
+                                ;; :definitionProvider
+                                ;; :declarationProvider
+                                ;; :typeDefinitionProvider
+                                ;; :implementationProvider
+                                ;; :workspaceSymbolProvider
+                                :codeLensProvider
+                                :inlayHintProvider
+                                :referencesProvider
+                                :documentHighlightProvider
+                                :documentSymbolProvider
+                                :documentFormattingProvider
+                                :documentRangeFormattingProvider
+                                :documentOnTypeFormattingProvider
+                                :documentLinkProvider
+                                :hoverProvider
+                                :renameProvider
+                                :colorProvider
+                                :foldingRangeProvider
+                                :executeCommandProvider))
+
+      ;; number of seconds before timing out LSP connection attempts
+      (customize-set-variable 'eglot-connect-timeout 15)
+
+      #+END_SRC
+
 **** Hideshow
 
      Minor mode to hide and show code and comment blocks.
@@ -8106,8 +8297,8 @@
         (lambda ()
           (when (and (boundp 'c-mode-map) (boundp 'c++-mode-map))
             ;; complete or indent
-            (define-key c-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
-            (define-key c++-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
+            ;; (define-key c-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
+            ;; (define-key c++-mode-map (kbd "TAB") 'ace-completion-at-point-or-indent)
             ;; compilation keybind
             (define-key c-mode-map (kbd "C-c C-c")
                         (lambda ()
@@ -8337,7 +8528,7 @@
       ;; non-nil means template skeletons will be automagically inserted
       (customize-set-variable 'python-skeleton-autoinsert t)
       ;; path to virtualenv root
-      (customize-set-variable 'python-shell-virtualenv-root nil) "~/.local/python/project/venv")
+      (customize-set-variable 'python-shell-virtualenv-root "~/.local/python/project/venv")
 
       #+END_SRC
 
@@ -8597,7 +8788,6 @@
      ;; (define-key ctl-x-map (kbd "C-<down>") nil)
      (define-key ctl-x-map (kbd "<right>") nil)
      (define-key ctl-x-map (kbd "<left>") nil)
-
      ;; (define-key ctl-x-map (kbd "C-d") nil)
      ;; (define-key ctl-x-map (kbd "C-o") nil)
      ;; (define-key ctl-x-map (kbd "C-c") nil)
@@ -8612,10 +8802,9 @@
      ;; (define-key ctl-x-map (kbd "C-u") nil)
      (define-key ctl-x-map (kbd "C-\@") nil)
      (define-key ctl-x-map (kbd "M-:") nil)
-
      (define-key ctl-x-map (kbd "RET") nil)
      (define-key ctl-x-map (kbd "`") nil)
-     (define-key ctl-x-map (kbd "]") nil)
+     ;; (define-key ctl-x-map (kbd "]") nil)
      ;; (define-key ctl-x-map (kbd "[") nil)
      (define-key ctl-x-map (kbd ")") nil)
      (define-key ctl-x-map (kbd "(") nil)
@@ -8666,13 +8855,17 @@
      (global-unset-key (kbd "C-@"))
      (global-unset-key (kbd "C-\\"))
      (global-unset-key (kbd "C-_"))
+
      ;;(global-unset-key (kbd "M-l"))
-     ;; (global-unset-key (kbd "M-h"))
-     ;; (global-unset-key (kbd "M-\\"))
+     ;;(global-unset-key (kbd "M-h"))
+     ;;(global-unset-key (kbd "M-\\"))
+
      (global-unset-key (kbd "M-$"))
      (global-unset-key (kbd "M-("))
      (global-unset-key (kbd "M-)"))
-     ;; (global-unset-key (kbd "M-r"))
+
+     ;;(global-unset-key (kbd "M-r"))
+
      (global-unset-key (kbd "M-{"))
      (global-unset-key (kbd "M-}"))
      (global-unset-key (kbd "S-SPC"))
